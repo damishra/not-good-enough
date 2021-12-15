@@ -26,6 +26,7 @@ enum Authority {
 model User {
   id        BigInt    @id @db.UnsignedBigInt
   username  String    @unique @db.VarChar(20)
+  fullname  String    @db.Text
   password  String    @db.VarChar(255)
   email     String    @unique @db.VarChar(255)
   region    Region    @default(MINISTRY)
