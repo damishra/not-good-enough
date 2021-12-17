@@ -2,12 +2,14 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["referentialIntegrity"]
 }
 
 datasource db {
-  provider = "mysql"
-  url      = env("DATABASE_URL")
+  provider             = "mysql"
+  url                  = env("DATABASE_URL")
+  referentialIntegrity = "prisma"
 }
 
 enum Region {
@@ -23,13 +25,121 @@ enum Authority {
   ADMINISTRATOR
 }
 
+enum PostType {
+  LETTER
+  EMAIL
+}
+
+enum Language {
+  ENGLISH
+  HINDI
+}
+
+enum Priority {
+  NORMAL
+  IMPORTANT
+  VIP
+}
+
+enum Status {
+  INCOMPLETE
+  INPROCESS
+  COMPLETED
+}
+
+enum UserRank {
+  SECRETARY
+  JSEC
+  PSEC
+  NONE
+}
+
 model User {
-  id        BigInt    @id @db.UnsignedBigInt
-  username  String    @unique @db.VarChar(20)
-  fullname  String    @db.Text
-  password  String    @db.VarChar(255)
-  email     String    @unique @db.VarChar(255)
-  region    Region    @default(MINISTRY)
-  authority Authority @default(READONLY)
-  access    Int       @default(9) @db.UnsignedTinyInt
+  id           BigInt    @id @db.UnsignedBigInt
+  username     String    @unique @db.VarChar(20)
+  fullname     String    @db.VarChar(100)
+  password     String    @db.VarChar(255)
+  email        String    @unique @db.VarChar(255)
+  region       Region    @default(MINISTRY)
+  authority    Authority @default(READONLY)
+  access       Int       @default(9) @db.UnsignedTinyInt
+  rank         UserRank  @default(NONE)
+  as_csec      Mail[]    @relation("mail_csec")
+  as_jsec      Mail[]    @relation("mail_jsec")
+  as_psec      Mail[]    @relation("mail_psec")
+  acknowledged Mail[]    @relation("mail_acknowledged")
+}
+
+model Designation {
+  id      BigInt   @id @db.UnsignedBigInt
+  name    String   @unique @db.VarChar(20)
+  members Sender[] @relation("sender_designation")
+}
+
+model Category {
+  id    BigInt @id @db.UnsignedBigInt
+  name  String @unique @db.VarChar(100)
+  mails Mail[] @relation("mail_category")
+}
+
+model State {
+  id             BigInt         @id @db.UnsignedBigInt
+  name           String         @unique @db.VarChar(100)
+  constituencies Constituency[] @relation("constituency_state")
+}
+
+model Organisation {
+  id      BigInt   @id @db.UnsignedBigInt
+  name    String   @unique @db.VarChar(100)
+  members Sender[] @relation("sender_organisation")
+}
+
+model Constituency {
+  id       BigInt @id @db.UnsignedBigInt
+  name     String @db.VarChar(100)
+  state_id BigInt @db.UnsignedBigInt
+  state    State  @relation("constituency_state", fields: [state_id], references: [id])
+
+  @@unique([name, state_id])
+}
+
+model Sender {
+  id              BigInt       @id @db.UnsignedBigInt
+  fullname        String       @db.VarChar(100)
+  email           String       @unique @db.VarChar(255)
+  address         String       @db.LongText
+  designation_id  BigInt       @db.UnsignedBigInt
+  designation     Designation  @relation("sender_designation", fields: [designation_id], references: [id])
+  organisation_id BigInt       @db.UnsignedBigInt
+  organisation    Organisation @relation("sender_organisation", fields: [organisation_id], references: [id])
+  mails           Mail[]       @relation("mail_sender")
+
+  @@unique([fullname, designation_id, organisation_id])
+}
+
+model Mail {
+  id               BigInt    @id @db.UnsignedBigInt
+  format           PostType  @default(LETTER)
+  category_id      BigInt    @db.UnsignedBigInt
+  category         Category  @relation("mail_category", fields: [category_id], references: [id])
+  sender_id        BigInt    @db.UnsignedBigInt
+  sender           Sender    @relation("mail_sender", fields: [sender_id], references: [id])
+  date_on_letter   DateTime  @db.DateTime
+  date_recieved    DateTime  @db.DateTime
+  importance       Priority? @default(NORMAL)
+  subject          String?   @db.LongText
+  csec_id          BigInt?   @db.UnsignedBigInt
+  csec             User?     @relation("mail_csec", fields: [csec_id], references: [id])
+  jsec_id          BigInt?   @db.UnsignedBigInt
+  jsec             User?     @relation("mail_jsec", fields: [jsec_id], references: [id])
+  psec_id          BigInt?   @db.UnsignedBigInt
+  psec             User?     @relation("mail_psec", fields: [psec_id], references: [id])
+  acknowledging_id BigInt?   @db.UnsignedBigInt
+  acknowledging    User?     @relation("mail_acknowledged", fields: [acknowledging_id], references: [id])
+  forward_address  String?   @db.LongText
+  status           Status    @default(INCOMPLETE)
+  completed        Boolean   @default(false)
+  remarks          String?   @db.LongText
+  created_at       DateTime  @db.Timestamp
+  updated_at       DateTime  @db.Timestamp
 }
