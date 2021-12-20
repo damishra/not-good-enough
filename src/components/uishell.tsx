@@ -27,7 +27,7 @@ export const UIShell = () => (
   <HeaderContainer
     render={({ isSideNavExpanded, onClickSideNavExpand }) => (
       <>
-        <Header>
+        <Header aria-labelledby="damishra">
           <SkipToContent />
           <HeaderMenuButton
             aria-label="Open menu"

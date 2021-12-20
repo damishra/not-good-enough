@@ -14,13 +14,33 @@ import {
   Tile,
 } from "carbon-components-react";
 import { Heading } from "carbon-components-react/lib/components/Heading";
+import Link from "next/link";
 import FormBody from "../../components/formbody";
 
 const rowSpacing = { margin: "1rem -1rem" };
 
 export default function CreateMail() {
   return (
-    <FormBody>
+    <FormBody
+      currentPage={0}
+      pages={[
+        {
+          name: "Incoming Details",
+          description: "Incoming Details",
+          link: "/mail/incoming",
+        },
+        {
+          name: "Processing Details",
+          description: "Processing Details",
+          link: "/mail/incoming",
+        },
+        {
+          name: "Outgoing Details",
+          description: "Outgoing Details",
+          link: "/mail/incoming",
+        },
+      ]}
+    >
       <Grid>
         <Row>
           <Column>
@@ -86,6 +106,7 @@ export default function CreateMail() {
                 <SelectItem
                   value={value}
                   text={value[0].toUpperCase() + value.substring(1)}
+                  key={value}
                 />
               ))}
             </Select>
@@ -154,7 +175,7 @@ export default function CreateMail() {
               helperText={"Select the designation of the sender."}
             >
               {["MP", "MLA", "SGT"].map((value) => (
-                <SelectItem value={value} text={value} />
+                <SelectItem value={value} text={value} key={value} />
               ))}
             </Select>
           </Column>
@@ -184,7 +205,7 @@ export default function CreateMail() {
               helperText="Enter the sender's state."
             >
               {["Delhi", "Uttar Pradesh", "Haryana", "Punjab"].map((state) => (
-                <SelectItem value={state} text={state} />
+                <SelectItem value={state} text={state} key={state} />
               ))}
             </Select>
           </Column>
@@ -205,7 +226,7 @@ export default function CreateMail() {
               helperText="Enter the sender's constituency."
             >
               {["Barmer", "Uttar Pradesh", "Haryana", "Punjab"].map((state) => (
-                <SelectItem value={state} text={state} />
+                <SelectItem value={state} text={state} key={state} />
               ))}
             </Select>
           </Column>
@@ -216,18 +237,9 @@ export default function CreateMail() {
           <Column />
           <Column />
           <Column>
-            <Button
-              size="lg"
-              style={{
-                width: "100%",
-                height: "100%",
-                ...rowSpacing,
-                marginLeft: "0rem",
-                marginRight: "0rem",
-              }}
-            >
-              Save and Continue
-            </Button>
+            <Link href={"/mail/processing"} passHref={true}>
+              <Button kind="primary">Save & Continue</Button>
+            </Link>
           </Column>
         </Row>
       </Grid>

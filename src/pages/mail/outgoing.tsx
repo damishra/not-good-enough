@@ -1,5 +1,6 @@
 import {
   Button,
+  ButtonSet,
   Column,
   DatePicker,
   DatePickerInput,
@@ -14,13 +15,33 @@ import {
   Tile,
 } from "carbon-components-react";
 import { Heading } from "carbon-components-react/lib/components/Heading";
+import Link from "next/link";
 import FormBody from "../../components/formbody";
 
 const rowSpacing = { margin: "1rem -1rem" };
 
 export default function CreateMail() {
   return (
-    <FormBody>
+    <FormBody
+      currentPage={2}
+      pages={[
+        {
+          name: "Incoming Details",
+          description: "Incoming Details",
+          link: "/mail/incoming",
+        },
+        {
+          name: "Processing Details",
+          description: "Processing Details",
+          link: "/mail/incoming",
+        },
+        {
+          name: "Outgoing Details",
+          description: "Outgoing Details",
+          link: "/mail/incoming",
+        },
+      ]}
+    >
       <Grid>
         <Row>
           <Column>
@@ -73,7 +94,7 @@ export default function CreateMail() {
                 "Department of Animal Husbandy & Dairying",
                 "Department of Fisheries",
               ].map((dept) => (
-                <SelectItem value={dept} text={dept} />
+                <SelectItem value={dept} text={dept} key={dept} />
               ))}
             </Select>
           </Column>
@@ -98,7 +119,7 @@ export default function CreateMail() {
                     "Department of Animal Husbandy & Dairying",
                     "Department of Fisheries",
                   ].map((dept) => (
-                    <SelectItem value={dept} text={dept} />
+                    <SelectItem value={dept} text={dept} key={dept} />
                   ))}
                 </Select>
               </Column>
@@ -126,12 +147,26 @@ export default function CreateMail() {
                 >
                   {["Malika Pandey", "Shashwat Mishra", "Dishant Mishra"].map(
                     (state) => (
-                      <SelectItem value={state} text={state} />
+                      <SelectItem value={state} text={state} key={state} />
                     )
                   )}
                 </Select>
               </Column>
             </Row>
+          </Column>
+        </Row>
+        <Row>
+          <Column />
+          <Column />
+          <Column>
+            <ButtonSet>
+              <Link href={"/mail/processing"} passHref={true}>
+                <Button kind="secondary">Go Back</Button>
+              </Link>
+              <Link href={"/"} passHref={true}>
+                <Button kind="primary">Save & Complete</Button>
+              </Link>
+            </ButtonSet>
           </Column>
         </Row>
       </Grid>
