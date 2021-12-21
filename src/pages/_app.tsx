@@ -2,13 +2,16 @@ import type { AppProps } from "next/app";
 import "../styles/main.scss";
 import UIShell from "../components/uishell";
 import BodyShell from "../components/bodyshell";
+import { useState } from "react";
+import type { pages } from "../logic/utilities";
 
 function MyApp({ Component, pageProps }: AppProps) {
+  const [current, setCurrent] = useState("dashboard" as pages);
   return (
     <>
-      <UIShell />
+      <UIShell current={current} />
       <BodyShell>
-        <Component {...pageProps} />
+        <Component setCurrent={setCurrent} {...pageProps} />
       </BodyShell>
     </>
   );

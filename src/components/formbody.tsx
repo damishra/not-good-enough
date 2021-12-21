@@ -14,9 +14,9 @@ export default function FormBody({
   pages,
 }: PropsWithChildren<any>) {
   return (
-    <Form style={{ margin: "1rem", backgroundColor: "Window" }}>
+    <Form style={{ margin: "1rem" }}>
       {children}
-      <Grid>
+      <Grid style={{ position: "fixed", width: "80%", bottom: "0" }}>
         <Row style={{ margin: "1rem -1rem" }}>
           <Column>
             <ProgressIndicator

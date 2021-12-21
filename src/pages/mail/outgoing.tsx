@@ -16,11 +16,20 @@ import {
 } from "carbon-components-react";
 import { Heading } from "carbon-components-react/lib/components/Heading";
 import Link from "next/link";
+import { Dispatch, SetStateAction, useState } from "react";
 import FormBody from "../../components/formbody";
+import type { format, pages } from "../../logic/frontend";
 
 const rowSpacing = { margin: "1rem -1rem" };
 
-export default function CreateMail() {
+export default function CreateMail({
+  setCurrent,
+}: {
+  setCurrent: Dispatch<SetStateAction<pages>>;
+}) {
+  const [format, setFormat] = useState("LETTER" as format);
+
+  setCurrent("mail_create");
   return (
     <FormBody
       currentPage={2}
