@@ -15,17 +15,83 @@ import {
 } from "carbon-components-react";
 import { Heading } from "carbon-components-react/lib/components/Heading";
 import Link from "next/link";
-import { Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 import FormBody from "../../components/formbody";
 import type { pages } from "../../logic/frontend";
+import type {
+  Region,
+  PostType,
+  Category,
+  State,
+  Designation,
+} from "@prisma/client";
+import { clientDB, uniqueID } from "../../logic/utilities";
 
 const rowSpacing = { margin: "1rem -1rem" };
+export type Mode = "CREATE" | "UPDATE";
 
-export default function CreateMail({
+export const getServerSideProps = async (ctx) => {
+  let idx: bigint;
+  let mode: Mode;
+  if (ctx.query && ctx.query.idx) idx = ctx.query.idx;
+  else idx = BigInt(await uniqueID.asyncGetUniqueID());
+  if (ctx.query && ctx.query.mode) mode = ctx.query.mode;
+  else mode = "CREATE";
+
+  const categories = await clientDB.category.findMany();
+  const states = await clientDB.state.findMany();
+  const designations = await clientDB.designation.findMany();
+
+  return {
+    props: {
+      idx: idx.toString(),
+      mode,
+      date: new Date().toLocaleString().toUpperCase(),
+      categories: categories.map((category) => ({
+        id: category.id.toString(),
+        name: category.name,
+      })),
+      states: states.map((state) => ({
+        id: state.id.toString(),
+        name: state.name,
+      })),
+      designations: designations.map((designation) => ({
+        id: designation.id.toString(),
+        name: designation.name,
+      })),
+    },
+  };
+};
+
+function CreateMail({
+  idx,
+  mode,
+  date,
+  categories,
+  states,
+  designations,
   setCurrent,
 }: {
+  idx: string;
+  mode: Mode;
+  date: string;
+  categories: Category[];
+  states: State[];
+  designations: Designation[];
   setCurrent: Dispatch<SetStateAction<pages>>;
 }) {
+  const [format, setFormat] = useState("LETTER");
+  const [region, setRegion] = useState("MINISTRY");
+  const [language, setLanguage] = useState("LANGUAGE");
+  const [letterNumber, setLetterNumber] = useState("");
+  const [dateOnMail, setDateOnMail] = useState(new Date().toLocaleDateString());
+  const [dateRecieved, setDateRecieved] = useState(
+    new Date().toLocaleDateString()
+  );
+  const [category, setCategory] = useState(categories.at(0).id);
+  const [designation, setDesignation] = useState(designations.at(0).id);
+  const [] = useState();
+
   setCurrent("mail_create");
   return (
     <FormBody
@@ -51,7 +117,9 @@ export default function CreateMail({
       <Grid>
         <Row>
           <Column>
-            <Heading>Add new mail record...</Heading>
+            <Heading>
+              {mode === "CREATE" ? "Add new" : "Update existing"} mail record...
+            </Heading>
           </Column>
           <Column>
             <Heading>Step 1 of 3</Heading>
@@ -69,19 +137,21 @@ export default function CreateMail({
                 <Column style={{ fontWeight: "bold", textAlign: "right" }}>
                   Date & Time:
                 </Column>
-                <Column>{new Date().toLocaleString().toUpperCase()}</Column>
+                <Column>{date}</Column>
               </Row>
               <Row>
                 <Column style={{ fontWeight: "bold", textAlign: "right" }}>
                   Last Updated:
                 </Column>
-                <Column>{new Date().toLocaleString().toUpperCase()}</Column>
+                <Column>{date}</Column>
               </Row>
               <Row>
                 <Column style={{ fontWeight: "bold", textAlign: "right" }}>
                   Record ID:
                 </Column>
-                <Column>{"XX-0000-0000-0000000"}</Column>
+                <Column>
+                  {region.charAt(0).toUpperCase() + idx.toString()}
+                </Column>
               </Row>
             </Tile>
           </Column>
@@ -93,8 +163,9 @@ export default function CreateMail({
             <RadioButtonGroup
               name={"source"}
               legendText={"Select source"}
-              valueSelected={"LETTER"}
-              defaultSelected={"LETTER"}
+              valueSelected={format}
+              defaultSelected={format}
+              onChange={(event) => setFormat(event.valueOf() as string)}
             >
               <RadioButton value={"LETTER"} labelText={"Letter"} />
               <RadioButton value={"EMAIL"} labelText={"Email"} />
@@ -108,12 +179,16 @@ export default function CreateMail({
               name="category"
               id="categoryInput"
               helperText={"Select the category of the mail subject."}
+              value={category.toString()}
+              onChange={(event) =>
+                setCategory(BigInt(event.currentTarget.value))
+              }
             >
-              {["endorsement", "invitation", "promotion"].map((value) => (
+              {categories.map((category) => (
                 <SelectItem
-                  value={value}
-                  text={value[0].toUpperCase() + value.substring(1)}
-                  key={value}
+                  value={category.id.toString()}
+                  text={category.name}
+                  key={category.id.toString()}
                 />
               ))}
             </Select>
@@ -124,6 +199,8 @@ export default function CreateMail({
               name="language"
               id="languageInput"
               helperText={"Select the language the mail was writtien in."}
+              value={language}
+              onChange={(event) => setLanguage(event.currentTarget.value)}
             >
               <SelectItem value={"ENGLISH"} text={"English"} />
               <SelectItem value={"HINDI"} text={"Hindi"} />
@@ -136,6 +213,8 @@ export default function CreateMail({
               id="letterNumberInput"
               placeholder="XX-0000000000"
               helperText={"Enter the e-office number for the mail."}
+              value={letterNumber}
+              onChange={(event) => setLetterNumber(event.currentTarget.value)}
             />
           </Column>
           <Column>
@@ -146,6 +225,8 @@ export default function CreateMail({
                 placeholder="dd/mm/yyyy"
                 id="dateOnMailInput"
                 helperText={"Enter the date on the mail."}
+                value={dateOnMail}
+                onChange={(event) => setDateOnMail(event.currentTarget.value)}
               />
             </DatePicker>
           </Column>
@@ -181,8 +262,12 @@ export default function CreateMail({
               id="designationInput"
               helperText={"Select the designation of the sender."}
             >
-              {["MP", "MLA", "SGT"].map((value) => (
-                <SelectItem value={value} text={value} key={value} />
+              {designations.map((designation) => (
+                <SelectItem
+                  value={designation.id.toString()}
+                  text={designation.name}
+                  key={designation.id.toString()}
+                />
               ))}
             </Select>
           </Column>
@@ -211,8 +296,12 @@ export default function CreateMail({
               id="stateInput"
               helperText="Enter the sender's state."
             >
-              {["Delhi", "Uttar Pradesh", "Haryana", "Punjab"].map((state) => (
-                <SelectItem value={state} text={state} key={state} />
+              {states.map((state) => (
+                <SelectItem
+                  value={state.id.toString()}
+                  text={state.name}
+                  key={state.id.toString()}
+                />
               ))}
             </Select>
           </Column>
@@ -244,8 +333,32 @@ export default function CreateMail({
           <Column />
           <Column />
           <Column>
-            <Link href={"/mail/processing"} passHref={true}>
-              <Button kind="primary">Save & Continue</Button>
+            <Link
+              href={`/mail/processing?idx=${
+                region.charAt(0).toUpperCase() + idx.toString()
+              }&mode=${mode}`}
+              passHref={true}
+            >
+              <Button
+                onClick={async (event) => {
+                  event.preventDefault();
+                  await fetch(
+                    mode === "CREATE"
+                      ? "/api/mail/create"
+                      : `/api/mail/update/${idx}`,
+                    {
+                      method: "POST",
+                      headers: { "content-type": "application/json" },
+                      body: JSON.stringify(region, (_, value) =>
+                        typeof value === "bigint" ? value.toString() : value
+                      ),
+                    }
+                  );
+                }}
+                kind="primary"
+              >
+                Save & Continue
+              </Button>
             </Link>
           </Column>
         </Row>
@@ -253,3 +366,5 @@ export default function CreateMail({
     </FormBody>
   );
 }
+
+export default CreateMail;

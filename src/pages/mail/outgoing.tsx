@@ -2,8 +2,6 @@ import {
   Button,
   ButtonSet,
   Column,
-  DatePicker,
-  DatePickerInput,
   Grid,
   RadioButton,
   RadioButtonGroup,
@@ -11,23 +9,35 @@ import {
   Select,
   SelectItem,
   TextArea,
-  TextInput,
   Tile,
 } from "carbon-components-react";
 import { Heading } from "carbon-components-react/lib/components/Heading";
 import Link from "next/link";
-import { Dispatch, SetStateAction, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import FormBody from "../../components/formbody";
-import type { format, pages } from "../../logic/frontend";
+import type { pages } from "../../logic/frontend";
+import type { Mode } from "./incoming";
 
 const rowSpacing = { margin: "1rem -1rem" };
 
-export default function CreateMail({
+function CreateMail({
+  query,
   setCurrent,
 }: {
+  query: { idx: string; mode: string };
   setCurrent: Dispatch<SetStateAction<pages>>;
 }) {
-  const [format, setFormat] = useState("LETTER" as format);
+  const [idx, setIDX] = useState(1n);
+  const [currentTime, setTime] = useState(
+    new Date().toLocaleString().toUpperCase()
+  );
+  const [mode, setMode] = useState("CREATE" as Mode);
+  useEffect(() => {
+    if (query) {
+      setIDX(BigInt(query.idx.substring(1)));
+      setMode(query.mode as Mode);
+    }
+  }, [query]);
 
   setCurrent("mail_create");
   return (
@@ -54,7 +64,9 @@ export default function CreateMail({
       <Grid>
         <Row>
           <Column>
-            <Heading>Add new mail record...</Heading>
+            <Heading>
+              {mode === "CREATE" ? "Add new" : "Update existing"} mail record...
+            </Heading>
           </Column>
           <Column>
             <Heading>Step 3 of 3</Heading>
@@ -84,7 +96,7 @@ export default function CreateMail({
                 <Column style={{ fontWeight: "bold", textAlign: "right" }}>
                   Record ID:
                 </Column>
-                <Column>{"XX-0000-0000-0000000"}</Column>
+                <Column>{query.idx}</Column>
               </Row>
             </Tile>
           </Column>
@@ -169,7 +181,10 @@ export default function CreateMail({
           <Column />
           <Column>
             <ButtonSet>
-              <Link href={"/mail/processing"} passHref={true}>
+              <Link
+                href={`/mail/processing?idx=${query.idx}&mode=${query.mode}`}
+                passHref={true}
+              >
                 <Button kind="secondary">Go Back</Button>
               </Link>
               <Link href={"/"} passHref={true}>
@@ -182,3 +197,9 @@ export default function CreateMail({
     </FormBody>
   );
 }
+
+CreateMail.getInitialProps = ({ query }) => {
+  return { query };
+};
+
+export default CreateMail;

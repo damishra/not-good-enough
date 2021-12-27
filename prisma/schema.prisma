@@ -9,6 +9,7 @@ generator client {
 datasource db {
   provider             = "mysql"
   url                  = env("DATABASE_URL")
+  shadowDatabaseUrl    = env("SHADOW_DATABASE_URL")
   referentialIntegrity = "prisma"
 }
 
@@ -126,6 +127,7 @@ model Mail {
   sender           Sender    @relation("mail_sender", fields: [sender_id], references: [id])
   date_on_letter   DateTime  @db.DateTime
   date_recieved    DateTime  @db.DateTime
+  recieved_at      Region    @default(MINISTRY)
   importance       Priority? @default(NORMAL)
   subject          String?   @db.LongText
   csec_id          BigInt?   @db.UnsignedBigInt

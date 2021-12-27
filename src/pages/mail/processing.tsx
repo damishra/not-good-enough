@@ -2,8 +2,6 @@ import {
   Button,
   ButtonSet,
   Column,
-  DatePicker,
-  DatePickerInput,
   Grid,
   RadioButton,
   RadioButtonGroup,
@@ -16,17 +14,30 @@ import {
 } from "carbon-components-react";
 import { Heading } from "carbon-components-react/lib/components/Heading";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { Dispatch, SetStateAction } from "react";
 import FormBody from "../../components/formbody";
 import type { pages } from "../../logic/frontend";
+import type { Mode } from "./incoming";
 
 const rowSpacing = { margin: "1rem -1rem" };
 
-export default function CreateMail({
+function CreateMail({
+  query,
   setCurrent,
 }: {
+  query: { idx: string; mode: string };
   setCurrent: Dispatch<SetStateAction<pages>>;
 }) {
+  const [idx, setIDX] = useState(1n);
+  const [mode, setMode] = useState("CREATE" as Mode);
+  useEffect(() => {
+    if (query) {
+      setIDX(BigInt(query.idx.substring(1)));
+      setMode(query.mode as Mode);
+    }
+  }, [query]);
+
   setCurrent("mail_create");
   return (
     <FormBody
@@ -52,7 +63,9 @@ export default function CreateMail({
       <Grid>
         <Row>
           <Column>
-            <Heading>Add new mail record...</Heading>
+            <Heading>
+              {mode === "CREATE" ? "Add new" : "Update existing"} mail record...
+            </Heading>
           </Column>
           <Column>
             <Heading>Step 2 of 3</Heading>
@@ -82,7 +95,7 @@ export default function CreateMail({
                 <Column style={{ fontWeight: "bold", textAlign: "right" }}>
                   Record ID:
                 </Column>
-                <Column>{"XX-0000-0000-0000000"}</Column>
+                <Column>{query.idx}</Column>
               </Row>
             </Tile>
           </Column>
@@ -162,10 +175,16 @@ export default function CreateMail({
           <Column />
           <Column>
             <ButtonSet>
-              <Link href={"/mail/incoming"} passHref={true}>
+              <Link
+                href={`/mail/incoming?idx=${idx}&mode=${mode}`}
+                passHref={true}
+              >
                 <Button kind="secondary">Go Back</Button>
               </Link>
-              <Link href={"/mail/outgoing"} passHref={true}>
+              <Link
+                href={`/mail/outgoing?idx=${query.idx}&mode=${mode}`}
+                passHref={true}
+              >
                 <Button kind="primary">Save & Continue</Button>
               </Link>
             </ButtonSet>
@@ -175,3 +194,9 @@ export default function CreateMail({
     </FormBody>
   );
 }
+
+CreateMail.getInitialProps = ({ query }) => {
+  return { query };
+};
+
+export default CreateMail;

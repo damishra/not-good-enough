@@ -3,7 +3,7 @@ import "../styles/main.scss";
 import UIShell from "../components/uishell";
 import BodyShell from "../components/bodyshell";
 import { useState } from "react";
-import type { pages } from "../logic/utilities";
+import type { pages } from "../logic/frontend";
 
 function MyApp({ Component, pageProps }: AppProps) {
   const [current, setCurrent] = useState("dashboard" as pages);
