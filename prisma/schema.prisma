@@ -107,7 +107,7 @@ model Constituency {
 model Sender {
   id              BigInt       @id @db.UnsignedBigInt
   fullname        String       @db.VarChar(100)
-  email           String       @unique @db.VarChar(255)
+  email           String?      @unique @db.VarChar(255)
   address         String       @db.LongText
   designation_id  BigInt       @db.UnsignedBigInt
   designation     Designation  @relation("sender_designation", fields: [designation_id], references: [id])
