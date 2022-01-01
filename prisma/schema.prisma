@@ -125,8 +125,8 @@ model Mail {
   category         Category  @relation("mail_category", fields: [category_id], references: [id])
   sender_id        BigInt    @db.UnsignedBigInt
   sender           Sender    @relation("mail_sender", fields: [sender_id], references: [id])
-  date_on_letter   DateTime  @db.DateTime
-  date_recieved    DateTime  @db.DateTime
+  date_on_letter   String    @db.VarChar(10)
+  date_recieved    String    @db.VarChar(10)
   recieved_at      Region    @default(MINISTRY)
   importance       Priority? @default(NORMAL)
   subject          String?   @db.LongText

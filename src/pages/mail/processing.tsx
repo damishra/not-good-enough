@@ -18,15 +18,38 @@ import { useEffect, useState } from "react";
 import { Dispatch, SetStateAction } from "react";
 import FormBody from "../../components/formbody";
 import type { pages } from "../../logic/frontend";
+import { clientDB } from "../../logic/utilities";
 import type { Mode } from "./incoming";
 
 const rowSpacing = { margin: "1rem -1rem" };
+
+export async function getServerSideProps(ctx: {
+  query: { idx: bigint | undefined; mode: Mode | undefined };
+}) {
+  const mail = await clientDB.mail.findUnique({
+    where: { id: BigInt(ctx.query.idx) },
+  });
+  let conv_mail: { [key: string]: string | Date } = {};
+  Object.keys(mail).forEach((key) => {
+    if (mail[key] === "bigint") {
+      conv_mail[key] = mail[key].toString();
+    } else conv_mail[key] = mail[key];
+  });
+
+  return {
+    props: {
+      query: ctx.query,
+      mail: { id: mail.id.toString() },
+    },
+  };
+}
 
 function CreateMail({
   query,
   setCurrent,
 }: {
   query: { idx: string; mode: string };
+  mail_conv: { [key: string]: string | Date };
   setCurrent: Dispatch<SetStateAction<pages>>;
 }) {
   const [idx, setIDX] = useState(1n);
@@ -194,9 +217,5 @@ function CreateMail({
     </FormBody>
   );
 }
-
-CreateMail.getInitialProps = ({ query }) => {
-  return { query };
-};
 
 export default CreateMail;

@@ -1,10 +1,9 @@
-import type { PostType, Region, Sender } from "@prisma/client";
+import type { PostType, Region } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
-import { Value } from "sass";
 import { clientDB, uniqueID } from "../../../logic/utilities";
 
 type RequestType = {
-  id: string;
+  id: bigint;
   format: PostType;
   language: string;
   letterNumber: string;
@@ -29,7 +28,16 @@ const MailCreateHandler = async (
     return;
   }
   try {
-    const body = request.body as RequestType;
+    let body = request.body as RequestType;
+    body = {
+      ...body,
+      id: BigInt(body.id),
+      category: BigInt(body.category),
+      designation: BigInt(body.designation),
+      organization: BigInt(body.organization),
+      state: BigInt(body.state),
+      constituency: BigInt(body.constituency),
+    };
     let senderID: bigint;
     let holder: {
       id: bigint;
@@ -50,6 +58,7 @@ const MailCreateHandler = async (
       });
       holder = sender;
     } catch (error) {
+      console.log(error);
       const sender = await clientDB.sender.create({
         data: {
           id: BigInt(await uniqueID.asyncGetUniqueID()),
@@ -73,8 +82,8 @@ const MailCreateHandler = async (
         format: body.format,
         sender_id: holder.id,
         recieved_at: body.region,
-        date_on_letter: new Date(body.dateOnMail),
-        date_recieved: new Date(body.dateRecieved),
+        date_on_letter: body.dateOnMail,
+        date_recieved: body.dateRecieved,
         created_at: new Date(),
         updated_at: new Date(),
         category_id: body.category,
@@ -100,6 +109,7 @@ const MailCreateHandler = async (
         )
       );
   } catch (error) {
+    console.error(error);
     response.status(400).send("form is incomplete");
   }
 };

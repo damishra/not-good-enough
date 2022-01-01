@@ -29,6 +29,7 @@ import type {
   Sender,
 } from "@prisma/client";
 import { clientDB, uniqueID } from "../../logic/utilities";
+import { useRouter } from "next/router";
 
 const rowSpacing = { margin: "1rem -1rem" };
 export type Mode = "CREATE" | "UPDATE";
@@ -130,12 +131,8 @@ function CreateMail({
       })
       .at(0)?.id ?? 0n
   );
-  const [nameList, setNameList] = useState(
-    senders.map((sender) => {
-      if (BigInt(designation) === BigInt(sender.designation_id))
-        return sender.fullname;
-    })
-  );
+
+  const router = useRouter();
 
   setCurrent("mail_create");
 
@@ -473,7 +470,23 @@ function CreateMail({
                   }
                 );
 
-                if (result.status === 201) window.location = new Location();
+                if (result.status === 201) {
+                  await router.prefetch(
+                    `/mail/processing?idx=${idx}&mode=${mode}`
+                  );
+                  router.push(`/mail/processing?idx=${idx}&mode=${mode}`);
+                } else {
+                  <div
+                    style={{
+                      position: "absolute",
+                      bottom: 0,
+                      left: "50%",
+                      transform: "translateX(-50%)",
+                    }}
+                  >
+                    Big Error
+                  </div>;
+                }
               }}
               kind="primary"
             >
